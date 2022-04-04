@@ -1,0 +1,30 @@
+body {
+    text-align: center;
+}
+
+.square {
+    text-align: center;
+    width: 50px;
+    height: 50px;
+    background: #eee;
+    display: inline-block;
+    padding: 40px;
+    margin: 5px;
+    font-size: 60px;
+    cursor: pointer;
+    color: #eee;
+}
+
+.player, .winner {
+    font-size: 30px;
+    margin-top: 15px;
+}
+
+button {
+    margin-top: 15px;
+    width: 100px;
+    height: 30px;
+    background: #eee;
+    cursor: pointer;
+    border-radius: 5px;
+}
