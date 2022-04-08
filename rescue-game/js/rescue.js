@@ -5,10 +5,18 @@ function start () {
     $("#backgroundGame").append("<div id='enemy1' class='anima2'></div>");
     $("#backgroundGame").append("<div id='enemy2'></div>");
     $("#backgroundGame").append("<div id='friend' class='anima3'></div>");
+    $("#backgroundGame").append("<div id='scoreboard'></div>");
+    $("#backgroundGame").append("<div id='energy'></div>");
 
     let endGame = false;
 
     let game = {}
+
+    let points = 0;
+    let friendsSave = 0;
+    let friendsLost = 0;
+
+    let currentEnergy = 3;
 
     let canShoot = true;
 
@@ -21,6 +29,17 @@ function start () {
         S: 83,
         D: 68
     }
+
+    let shotSound = document.getElementById("shotSound");
+    let explosionSound = document.getElementById("explosionSound");
+    let gameMusic = document.getElementById("gameMusic");
+    let gameoverSound = document.getElementById("gameoverSound");
+    let lostSound = document.getElementById("lostSound");
+    let rescueSound = document.getElementById("rescueSound");
+
+    gameMusic.addEventListener("ended", function(){ gameMusic.currentTime = 0; gameMusic.play(); }, false);
+    gameMusic.play();
+
     game.press = [];
 
     $(document).keydown(function(e){
@@ -34,12 +53,21 @@ function start () {
     game.timer = setInterval(loop, 30);
 
     function loop () {
+        
         movBackground();
         movPlayer();
         movEnemy1();
         movEmeny2();
         movFriend();
         collision();
+        scoreboard();
+        energy();
+    }
+
+    function scoreboard() {
+	
+        $("#scoreboard").html("<h2> Points: " + points + " Salves: " + friendsSave + " Losts: " + friendsLost + "</h2>");
+        
     }
 
     function movPlayer () {
@@ -70,6 +98,8 @@ function start () {
     function Shot() {
 	
         if (canShoot == true) {
+            
+        shotSound.play();
             
         canShoot = false;
         
@@ -155,6 +185,10 @@ function start () {
         
         if (collision1.length > 0) {
 		
+            currentEnergy--;
+
+            explosionSound.play();
+
             enemy1X = parseInt($("#enemy1").css("left"));
             enemy1Y = parseInt($("#enemy1").css("top"));
             explosion1(enemy1X, enemy1Y);
@@ -166,6 +200,10 @@ function start () {
 
         if (collision2.length > 0) {
 
+            currentEnergy--;
+
+            explosionSound.play();
+
             enemy2X = parseInt($("#enemy2").css("left"));
             enemy2Y = parseInt($("#enemy2").css("top"));
             explosion2(enemy2X, enemy2Y);
@@ -175,8 +213,14 @@ function start () {
             replaceEnemy2();      
         } 
         
-        if (colision3.length > 0) {
+        if (collision3.length > 0) {
 		
+            points = points + 100;
+
+            velocity = velocity + 0.3;
+
+            explosionSound.play();
+
             enemy1X = parseInt($("#enemy1").css("left"));
             enemy1Y = parseInt($("#enemy1").css("top"));
                 
@@ -185,11 +229,16 @@ function start () {
                 
             positionY = parseInt(Math.random() * 334);
             $("#enemy1").css("left",694);
-            $("#enemy1").css("top", positionY);     
+            $("#enemy1").css("top", positionY); 
+            
         }
 
-        if (colision4.length > 0) {
+        if (collision4.length > 0) {
 		
+            points = points + 50;
+
+            explosionSound.play();
+
             enemy2X = parseInt($("#enemy2").css("left"));
             enemy2Y = parseInt($("#enemy2").css("top"));
             $("#enemy2").remove();
@@ -200,11 +249,29 @@ function start () {
             replaceEnemy2();
         }
 
-        if (colision5.length > 0) {
+        if (collision5.length > 0) {
 		
+            friendsSave++;
+
+            rescueSound.play();
+
             replaceFriend();
             $("#friend").remove();
         }
+
+        if (collision6.length > 0) {
+
+            friendsLost++;
+
+            lostSound.play();
+	    
+            friendX = parseInt($("#friend").css("left"));
+            friendY = parseInt($("#friend").css("top"));
+            explosion3(friendX,friendY);
+            $("#friend").remove();
+                    
+            replaceFriend();         
+            }
     }
 
     function explosion1(enemy1X, enemy1Y) {
@@ -230,7 +297,9 @@ function start () {
 	
         $("#backgroundGame").append("<div id='explosion2'></div");
         $("#explosion2").css("background-image", "url(imgs/explosao.png)");
+        
         var div2 = $("#explosion2");
+        
         div2.css("top", enemy2Y);
         div2.css("left", enemy2X);
         div2.animate({width:200, opacity:0}, "slow");
@@ -243,6 +312,20 @@ function start () {
             window.clearInterval( explosionTime2 );
             explosionTime2 = null;  
         }
+    }
+
+    function explosion3(friendX, friendY) {
+        $("#backgroundGame").append("<div id='explosion3' class='anima4'></div");
+        $("#explosion3").css("top", friendY);
+        $("#explosion3").css("left", friendX);
+        
+        var timeExplosion3 = window.setInterval(resetExplosion3, 1000);
+           
+        function resetExplosion3() {
+            $("#explosion3").remove();
+            window.clearInterval(timeExplosion3);
+            timeExplosion3 = null;     
+        }      
     }
 
     function replaceEnemy2() {
@@ -274,8 +357,56 @@ function start () {
             
             $("#backgroundGame").append("<div id='friend' class='anima3'></div>");
             
-            }ss
+            }
         }   
     }
 
+    function energy() {
+	
+		if (currentEnergy == 3) {
+			
+			$("#energy").css("background-image", "url(imgs/energia3.png)");
+		}
+	
+		if (currentEnergy == 2) {
+			
+			$("#energy").css("background-image", "url(imgs/energia2.png)");
+		}
+	
+		if (currentEnergy == 1) {
+			
+			$("#energy").css("background-image", "url(imgs/energia1.png)");
+		}
+	
+		if (currentEnergy == 0) {
+			
+			$("#energy").css("background-image", "url(imgs/energia0.png)");
+			
+			gameOver();
+		}
+	} 
+
+    function gameOver() {
+        endGame = true;
+        gameMusic.pause();
+        gameoverSound.play();
+        
+        window.clearInterval(game.timer);
+        game.timer = null;
+        
+        $("#player").remove();
+        $("#enemy1").remove();
+        $("#enemy2").remove();
+        $("#friend").remove();
+        
+        $("#backgroundGame").append("<div id='end'></div>");
+        
+        $("#end").html("<h1> Game Over </h1><p>Your scores were: " + points + "</p>" + "<div id='restart' onClick=restartGame()><h3>Play again?</h3></div>");
+    }
+}
+
+function restartGame() {
+	gameoverSound.pause();
+	$("#end").remove();
+	start();
 }
